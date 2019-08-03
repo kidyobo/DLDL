@@ -1,0 +1,15 @@
+{
+  "group": "hgjgjGroup",
+  "libs": [ ],
+  "frameworks": [
+     "ReplayKit.framework"
+  ],
+  "headerpaths": [ ],
+  "files": [
+     "sdk/AASDK.framework",
+     "sdk/CFFrameworks.framework"
+  ],
+  "folders": [ "sdk/" ],
+  "excludes": [ "^.*.meta$", "^.*.mdown$", "^.*.pdf$" ],
+  "linker_flags": ["-licucore"]
+}

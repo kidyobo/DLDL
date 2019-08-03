@@ -1,0 +1,24 @@
+#ifndef Demo_codeObfuscation_h
+#define Demo_codeObfuscation_h
+//confuse string at Tue Oct 30 16:35:34 CST 2018
+#define CFgPrivacys hpBFftaUOjBPnzzQ
+#define CFgTermss fohagPrHmTGhoPEW
+#define CFgernieneurieuri cmMVCeOKzsFqRxrF
+#define CFgetClickDidCallback CFBEOPZnVBECBEVo
+#define CFgetDidClickConfirmation AQQycekNqcgxpEeR
+#define CFgetDidClickDidLoginView GDEMNlMIpyoOQXIv
+#define CFgetDidClickDidonekeyView RtfjZbeOXhSRyWun
+#define CFgetDidClickDidphoneView vHCNUtUICoVWCrrT
+#define CFgetDidClickDidprotocolBnt YEQjtMUUZNqyCQMm
+#define CFgetDidClickPhoneView RJvPpEybgmpzxTkl
+#define CFgetDidClickVerificationCode wfCQValofwcNsJUF
+#define CFgetDidClickhuidiao EAAlfNtrJhfxaDtH
+#define CFgetJson XBBFlVhrRwIlCyaM
+#define CFgetModifythepassword QSNMOoavktOCpIKI
+#define CFgetRegisterView tMmoydJJxbycKKeb
+#define CFgetonkeyRegisterView oPtYBODJvBJiBBtG
+#define CFgopenSafariInApp ALHWEstSarvVYnTY
+#define CFgsetAcceptBnts ZXDUVmMfnwCJKyCc
+#define CFgsetDidclickwindowView wxKdCqdIoyGpZtkH
+#define CFgsetDiddisplay RPfLgbrkpqwSynsS
+#endif

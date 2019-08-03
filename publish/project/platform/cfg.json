@@ -1,0 +1,129 @@
+﻿[
+    {
+        "gameid": 1,
+        "plat": 0,
+        "platName": "斗罗-内网测试包",
+        "productName": "斗罗大陆之史莱克归来",
+        "bundleId": "com.fy.dldl.dev",
+        "url": "http://192.168.8.75/mgameres/douluo_develop/",
+        "defines": "EXPORT_PROJECT.DEVELOP.OPEN_OUTPUTPANEL.TESTUIN.ARMX86",
+        "apk": "com.fy.dldl.dev.v{version}.apk",
+        "exe": "fengyue_dldl",
+        "pcChannelList": [
+            {
+                "id": "0"
+            }
+        ],
+        "channel-xsdk": "neiwang",
+        "path": "fengyue/rycs",
+        "common": "fengyue/common",
+        "build_bjson": true,
+        "targetSdkVersion": "19"
+    },
+    {
+        "gameid": 3,
+        "plat": 0,
+        "platName": "斗罗-外网测试包(TEST包)",
+        "productName": "斗罗大陆之史莱克归来",
+        "bundleId": "com.fy.dldl.test",
+        "url": "http://111.230.166.121/publish/",
+        "defines": "EXPORT_PROJECT.DEVELOP.OPEN_OUTPUTPANEL.TESTUIN.ARMX86",
+        "apk": "com.fy.dldl.test.v{version}.apk",
+        "exe": "fengyue_dldl_test",
+        "pcChannelList": [
+            {
+                "id": "0"
+            }
+        ],
+        "channel-xsdk": "neiwang",
+        "path": "fengyue/rycs",
+        "common": "fengyue/common",
+        "build_bjson": true,
+        "targetSdkVersion": "19"
+    },
+    {
+        "gameid": 4,
+        "plat": 0,
+        "platName": "斗罗-外网测试包(TEST包-外网cdn)",
+        "productName": "斗罗大陆之史莱克归来",
+        "bundleId": "com.fy.dldl.cdntest",
+        "url": "http://dldlgamecdn-1252720922.cos.ap-guangzhou.myqcloud.com/dldltest/",
+        "defines": "EXPORT_PROJECT.DEVELOP.TESTUIN.OPEN_OUTPUTPANEL.ARMX86",
+        "apk": "com.fy.dldl.cdntest.v{version}.apk",
+        "channel-xsdk": "neiwang",
+        "path": "fengyue/rycs",
+        "common": "fengyue/common",
+        "build_bjson": true,
+        "targetSdkVersion": "19"
+    },
+    {
+        "gameid": 4000,
+        "plat": 1,
+        "platName": "斗罗-正式包（买量包）（接入SDK）",
+        "productName": "史莱克归来",
+        "bundleId": "com.fy.slkgl",
+        "url": "http://dldlgamecdn-1252720922.cos.ap-guangzhou.myqcloud.com/dldl/",
+        "defines": "EXPORT_PROJECT.ARMX86",
+        "apk": "com.fy.slkgl.v{version}.apk",
+        
+        "channel-xsdk": "tanggu_mayi",
+        "common": "tanggu_mayi/common",
+        "path": "tanggu_mayi/slkgl",
+        "build_bjson": true,
+        "targetSdkVersion": "19"
+    },
+    {
+        "gameid": 4001,
+        "plat": 1,
+        "platName": "斗罗-正式包（渠道联运包）（接入SDK）",
+        "productName": "斗罗大陆之史莱克归来",
+        "bundleId": "com.fy.dldl",
+        "url": "http://dldlgamecdn-1252720922.cos.ap-guangzhou.myqcloud.com/dldl/",
+        "defines": "EXPORT_PROJECT.ARMX86",
+        "apk": "com.fy.dldl.v{version}.apk",
+        
+        "channel-xsdk": "tanggu_mayi",
+        "common": "tanggu_mayi/common",
+        "path": "tanggu_mayi/dldl",
+        "build_bjson": true,
+        "targetSdkVersion": "19"
+    },
+    {
+        "gameid": 5001,
+        "plat": 2,
+        "platName": "7477-斗罗-正式包（接入SDK的）",
+        "productName": "斗罗大陆OL",
+        "bundleId": "com.douluo.yx7477",
+        "url": "http://jd.res.fygame.com/duoluo7477/",
+        "defines": "EXPORT_PROJECT.ARMX86",
+        "apk": "com.douluo.yx7477.v{version}.apk",
+        
+        "channel-xsdk": "7477",
+        "common": "7477/common",
+        "path": "7477/douluo",
+        "build_bjson": true,
+        "targetSdkVersion": "19"
+    },
+    {
+        "gameid": 6002,
+        "plat": 3,
+        "platName": "中南值尚ASDK-斗罗-正式包（接入SDK的）",
+        "productName": "斗罗大陆之史莱克归来",
+        "bundleId": "com.dljx.wf",
+        "url": "http://dldlcdn.8ttoo.com/dldl/",
+        "defines": "EXPORT_PROJECT.ARMX86",
+        "apk": "com.dljx.wf.v{version}.apk",
+        
+        "channel-xsdk": "asdk",
+        "common": "asdk/common",
+        "path": "asdk/douluo",
+        "build_bjson": true,
+        "targetSdkVersion": "19",
+		"exe": "dljx",
+        "pcChannelList": [
+            {
+                "id": "0"
+            }
+        ]
+    }
+]

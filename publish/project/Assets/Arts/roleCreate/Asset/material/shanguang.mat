@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: shanguang
+  m_Shader: {fileID: 4800000, guid: 0965c22b7c23dc249aca57f9ad39daab, type: 3}
+  m_ShaderKeywords: Dissolve_Off Distortion_Off Sphere_Off VertexColor_On _SEPARATEALPHA_OFF
+  m_LightmapFlags: 5
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DissolveTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DistortionTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 225259e2f579fdf4caab64ec952c8e41, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SphereMaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SphereTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AlphaCtrl: 1
+    - _AlphaRotate: 0
+    - _Brightness: 1
+    - _ColorMultiplier: 1
+    - _CullMode: 2
+    - _Dissolve: 0
+    - _DissolveBlend: 0
+    - _DstFactor: 1
+    - _Flow: 0
+    - _FlowRotate: 0
+    - _FogDensity: 0
+    - _LuminosityAmount: 0
+    - _MaskRotate: 0
+    - _MaxX: 10
+    - _MaxY: 10
+    - _MinX: -10
+    - _MinY: -10
+    - _PushSize: 0
+    - _Rotate: 0
+    - _SeparateAlpha: 0
+    - _SrcFactor: 5
+    - _ZTestMode: 4
+    - _ZWrite: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DistortionArgs: {r: 0, g: 0, b: 0.05, a: 0}
+    - _FlowUVParam: {r: 0, g: 0, b: 0, a: 1}
+    - _MainColor: {r: 1, g: 1, b: 1, a: 1}
+    - _MaskUVParam: {r: 0, g: 0, b: 1, a: 1}
+    - _UVParam: {r: 0, g: 0, b: 1, a: 1}
+    - _UVTile: {r: 0, g: 0, b: 1, a: 1}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <application >
+
+     <!-- downloader -->
+     <receiver
+       android:name="com.fy.apkdownloader.InstallApkBroadcast">
+        <intent-filter>
+          <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+         </intent-filter>
+     </receiver>
+        
+  </application>
+  
+  <!-- apk downloader -->
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
+  
+</manifest>

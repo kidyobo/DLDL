@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   creationComplete="_init()" width="400" height="440">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import spark.components.TextArea;
+			
+			// 导入路径
+			private var m_configInputPath :String = "xml/";
+			
+			// 状态栏
+			private var m_taLog :TextArea;
+			
+			// 导出的As文件的相对路径
+			private var m_outputPath :String = "out/ts/";
+			
+			// 第一次的XML文件名称集合
+			private var m_xmlFileNameList :Array;
+			
+			// 第二次的XML文件名称集合
+			private var m_xmlFileNameList2 :Array;			
+			
+			// 读取完毕的XML文件名称集合
+			private var m_loadCompleteList :Array;
+			
+			// 错误信息集合
+			private var m_errorList :Array;
+									
+			// 自定义类附加属性XML信息
+			private var m_additionalMemberXml :XML;
+						
+			// 读取进度侦听id
+			private var m_intervalId :int;
+			
+			private var m_tmplUtil: TemplateUtil;
+			
+			// 数据控制器
+			private var m_dataController :DataController;
+			
+			// 自定义类文件构造器
+			private var m_configDataMaker :ConfigDataMaker;
+			
+			private var m_errorIdMaker :ErrorIdMaker;
+			
+			private var m_keywordMaker :KeyWordMaker;
+			
+			private var m_tinyErrors: XMLList;
+			
+			private var saveClassNameObj :Object;
+			
+			private var m_extractStrEnabled: Boolean;
+			
+			private var m_configFile: String;
+			
+			private var m_pcName: String;
+			
+			private var m_loadInfoMap: Object = {};
+			// ------------ 以下是函数声明 ------------------- //
+			
+			private function _init(): void
+			{				
+				m_taLog = new TextArea();
+				m_taLog.width = 360;
+				m_taLog.height = 360;
+				m_taLog.move(20, 20);
+				this.addElement(m_taLog);
+				
+				saveClassNameObj = new Object();
+				
+				NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, _onInvoke);				
+			}
+			
+			private function _onInvoke(event: InvokeEvent): void
+			{
+				if(event.arguments.length > 0)
+				{
+					m_configFile = event.arguments[0];
+				}
+				else
+				{
+					m_configFile = "FYM.xml"; 
+				}
+				
+				// 第三个参数表示pc名字
+				if(event.arguments.length > 1)
+				{
+					m_pcName = event.arguments[1];
+				}
+				else
+				{
+					m_pcName = "unknown";
+				}
+				
+				// 第二个参数表示是否归集字符串
+				if(event.arguments.length > 2)
+				{
+					m_extractStrEnabled = "true" == event.arguments[2];
+				}
+				
+				// 初始化ts工具
+				As2Ts.init();
+				
+				// 先加载模板文件
+				m_tmplUtil = new TemplateUtil();
+				m_tmplUtil.start(m_pcName, _onTmplComplete);
+			}
+			
+			private function _onTmplComplete() : void
+			{
+				var fileReq :URLRequest;
+				var fileLoader :URLLoader;
+				
+				fileReq = new URLRequest(m_configFile);
+				
+				fileLoader = new URLLoader();
+				// 以二进制方式接收数据
+				fileLoader.dataFormat = URLLoaderDataFormat.BINARY;
+				
+				// 注册侦听
+				fileLoader.addEventListener(Event.COMPLETE, _onLoadConfigXML_Complete);
+				fileLoader.addEventListener(IOErrorEvent.IO_ERROR, _onLoadXML_IOError);
+				
+				// 读取Xml文件
+				m_loadInfoMap[fileLoader] = fileReq.url;
+				fileLoader.load(fileReq);
+			}
+			
+			private function _onLoadConfigXML_Complete(evt :Event) :void
+			{
+				var dataArray :ByteArray = evt.target.data;
+				// 以简体中文的字符集来转码
+				var dataStr :String = dataArray.readMultiByte(dataArray.length, "gb2312");
+				
+				var fileXml :XML =  new XML(dataStr);
+				if (fileXml == null)
+				{
+					m_errorList.push("[ERROR] ClassMaker2::_onLoadConfigXML_Complete - fileXml is null!");
+					return;
+				}
+								
+				m_loadCompleteList = new Array();
+				m_errorList = new Array();
+								
+				var fileXMLList :XMLList = fileXml.kylinConfig.firstLoading.file;				
+				m_xmlFileNameList = new Array();
+				
+				for (var key :String in fileXMLList)
+				{
+					//trace("name: " + fileXMLList[key].@name);
+					m_xmlFileNameList.push(fileXMLList[key].@name);
+				}
+				
+				fileXMLList = fileXml.kylinConfig.secondLoading.file;				
+				m_xmlFileNameList2 = new Array();
+				
+				for (key in fileXMLList)
+				{
+					//trace("name: " + fileXMLList[key].@name);
+					m_xmlFileNameList2.push(fileXMLList[key].@name);
+				}
+				
+				var inputPrePath: String = "";
+				
+				// 修改这句话以便修改input路径
+				//inputPrePath = "F:\\FYclient\\tools\\xml2as\\tempTBNew\\xml2asApp\\";
+				
+				m_configInputPath = inputPrePath + fileXml.kylinConfig.@inputPath;
+				m_outputPath = File.applicationDirectory.nativePath + File.separator + "ts/"; //fileXml.kylinConfig.@outputPath;
+				
+				m_dataController = new DataController();				
+				m_configDataMaker = new ConfigDataMaker(m_dataController, m_tmplUtil);
+				m_errorIdMaker = new ErrorIdMaker(m_dataController, m_tmplUtil);
+				m_keywordMaker = new KeyWordMaker(m_dataController, m_tmplUtil);
+				
+				m_tinyErrors = fileXml.tinyerrorId.children();
+				
+				var fileReq :URLRequest;
+				var fileLoader :URLLoader;
+				
+				// ---------------------------------- 生成游戏错误Id索引As文件 --------------------------- //
+				//*/
+				fileReq = new URLRequest(fileXml.errorId.@inputPath + fileXml.errorId.file.@name);
+				fileLoader = new URLLoader();
+				// 以二进制方式接收数据
+				fileLoader.dataFormat = URLLoaderDataFormat.BINARY;
+				
+				// 注册侦听
+				fileLoader.addEventListener(Event.COMPLETE, _onLoadErrorIdXML_Complete);
+				fileLoader.addEventListener(IOErrorEvent.IO_ERROR, _onLoadXML_IOError);
+				
+				// 读取Xml文件
+				m_loadInfoMap[fileLoader] = fileReq.url;
+				fileLoader.load(fileReq);
+				//*/
+				// ---------------------------------- end 生成游戏错误Id索引As文件 --------------------------- //
+				
+				// ---------------------------------- 生成关键字As文件 --------------------------- //
+				//*/
+				fileReq = new URLRequest(fileXml.kylinConfig.@inputPath + fileXml.keyword.file.@name);
+				
+				fileLoader = new URLLoader();
+				// 以二进制方式接收数据
+  				fileLoader.dataFormat = URLLoaderDataFormat.BINARY;
+				
+				// 注册侦听
+				fileLoader.addEventListener(Event.COMPLETE, _onLoadKeywordXML_Complete);
+				fileLoader.addEventListener(IOErrorEvent.IO_ERROR, _onLoadXML_IOError);
+				
+				// 读取Xml文件
+				m_loadInfoMap[fileLoader] = fileReq.url;
+				fileLoader.load(fileReq);
+				//*/
+				// ---------------------------------- End 生成关键字As文件 --------------------------- //
+				
+				//*/
+				// 注册读取侦听
+				m_intervalId = setInterval(_checkLoadingStatus, 1000);
+				
+				// 初始化数据				
+				m_errorList = new Array();
+				m_loadCompleteList = new Array();		
+				
+				m_dataController.resetData();
+				
+				for (var i:String in m_xmlFileNameList)
+				{
+					fileReq = new URLRequest(fileXml.keyword.@inputPath + m_xmlFileNameList[i]);
+					fileLoader = new URLLoader();
+					
+					// 以二进制方式接收数据
+					fileLoader.dataFormat = URLLoaderDataFormat.BINARY;
+					
+					// 注册侦听
+					fileLoader.addEventListener(Event.COMPLETE, _onLoadComplete);
+					fileLoader.addEventListener(IOErrorEvent.IO_ERROR, _onLoadXMLIOError);
+					
+					// 读取Xml文件
+					m_loadInfoMap[fileLoader] = fileReq.url;
+					fileLoader.load(fileReq);
+				}
+				//*/
+			}
+			
+			/**
+			 * 侦听读取进度
+			 **/
+			private function _checkLoadingStatus() :void
+			{				
+				if (m_loadCompleteList.length == (m_xmlFileNameList.length + m_xmlFileNameList2.length))
+				{
+					// 结束侦听
+					clearInterval(m_intervalId);
+					
+					trace("ClassMaker2::_checkLoadingStatus - all file loaded!");
+					m_taLog.appendText("Loading Complete!" + "\n");
+					
+					if (m_errorList.length == 0)
+					{
+						// 保存AS文件
+						_saveAsFile();
+						
+						// 写如执行Log
+						var tempStr :String;
+						var systemDate :Date = new Date();
+						tempStr = "Time: " + systemDate.getFullYear() + "\." + Number(systemDate.getMonth() + 1) + "\." + systemDate.getDate() 
+							+ " - " + systemDate.getHours() + ":" + systemDate.getMinutes() + ":" + systemDate.getSeconds() + "\n";
+						_writeLogFile(tempStr);
+						
+						tempStr = "Class Name: ";
+						var className:Array = new Array();
+						for (var key :String in m_dataController.m_fileNameStringObj)
+						{
+							if (key.indexOf("_Flash") == -1)
+							{
+								// 只保存含有_Flash字段的类名称
+								continue;
+							}
+							
+							className.push(key);
+						}
+						className.sort();
+						
+						tempStr += className.toString() + "\n";
+						_writeLogFile(tempStr);
+						
+						tempStr = "Error: ";
+						for (var i :int = 0; i < m_errorList.length; ++i)
+						{
+							tempStr += m_errorList[i] + "\n";
+						}
+						_writeLogFile(tempStr);
+						_writeLogFile("\n");			
+																		
+						trace("ClassMaker2::_checkLoadingStatus - all saved!");
+						m_taLog.appendText("Save Complete!" + "\n");
+						
+						
+						NativeApplication.nativeApplication.exit();
+					}
+					else
+					{
+						trace("[ERROR ]ClassMaker2::_checkLoadingStatus - error messages:");
+						m_taLog.appendText("Error checkLoadingStatus:" + "\n");
+						for (i = 0; i < m_errorList.length; ++i)
+						{
+							trace(m_errorList[i]);
+							m_taLog.appendText(m_errorList[i] + "\n");
+						}
+					}
+				}
+			}
+			
+			/**
+			 * 写入程序执行Log
+			 * @param 写入的Log信息
+			 * */
+			private function _writeLogFile(logStr :String) :void
+			{
+				var newFile :File = new File(m_outputPath + "ClassMaker2.log");
+				
+				// 写入文件
+				var fileController :FileStream = new FileStream();
+				fileController.open(newFile, FileMode.APPEND);
+				fileController.writeUTFBytes(logStr);
+				fileController.close();			
+			}
+			
+			/**
+			 * 保存As文件
+			 **/
+			private function _saveAsFile() :void
+			{
+				var key :String;
+				var asFileNameObj :Object = new Object();
+				
+				// 将含有“_Flash”的类保存起来
+				for (key in m_dataController.m_fileNameStringObj)
+				{
+					if (key.indexOf("_Flash") == -1)
+					{
+						continue;
+					}
+					
+					asFileNameObj[key] = m_dataController.m_fileNameStringObj[key];					
+				}
+				
+				// 遍历已有类成员找到其他自定义类
+				var newChildFile :Object;
+				for (key in asFileNameObj)
+				{
+					newChildFile = _findChildFile(key, asFileNameObj);
+					if (null == newChildFile)
+					{
+						continue;
+					}
+					
+					break;
+				}	
+				
+				while(null != newChildFile)
+				{
+					// 存入新的类
+					for (key in newChildFile)
+					{
+						asFileNameObj[key] = newChildFile[key];						
+					}				
+					
+					for (key in asFileNameObj)
+					{
+						newChildFile = _findChildFile(key, asFileNameObj);
+						if (null == newChildFile)
+						{
+							continue;
+						}
+						// 找到新增的子类
+						break;
+					}	
+				}
+				
+				var tsContent: String = "";
+				for (key in asFileNameObj)
+				{
+					saveClassNameObj[key] = asFileNameObj[key];
+					tsContent += m_dataController.m_fileStringObj[key] + "\n\n";
+				}
+				
+				tsContent = m_tmplUtil.makeGameConfigDef(tsContent);
+				
+				var newFile :File = new File(m_outputPath + "GameConfig.d.ts");		
+				
+				// 写入文件
+				var fileController :FileStream = new FileStream();
+				fileController.open(newFile, FileMode.WRITE);
+				fileController.writeUTFBytes(tsContent);
+				fileController.close();
+				
+				m_taLog.appendText("SaveFile: " + asFileNameObj[key] + " Complete!" + "\n");
+				
+				// 生成类成员索引类
+//				_saveMemberDictionaryAsFile(asFileNameObj);
+//				
+//				// 生产自定义类注册器类
+//				_saveClassRegisterAsFile(asFileNameObj);
+//				
+//				// 生成翻译字段表
+//				_makeTranslationInfoAsFile();
+			}
+						
+			/**
+			 * 找到子类的自定义成员
+			 **/
+			private function _findChildFile(className :String, fileNameObj :Object) :Object
+			{
+				// 找到这个类的类成员
+				var newFileNameObj :Object;
+				
+				var memberList :Array = m_dataController.m_fileMemberInfoObj[className];				
+				if (null == memberList)
+				{
+					trace("[WARNING] ClassMaker2::_findChildFile - This class has no members: " + className);
+					return newFileNameObj;
+				}
+				
+				var count :int = memberList.length;		
+//				trace("className:" + className + ", " + count);		
+				
+				for (var i :int = 0; i < count; ++i)
+				{
+					if (0 == m_dataController.checkMemberType(memberList[i].type)
+						|| null != fileNameObj[memberList[i].type])
+					{
+						// 是基础数据类型或该种数据类型已保存
+//						trace("error child: " + memberList[i].type + ", " + fileNameObj[memberList[i].type]);						
+						continue;
+					}
+					
+					if (null == newFileNameObj)
+					{
+						newFileNameObj = new Object();
+					}
+					newFileNameObj[memberList[i].type] = m_dataController.m_fileNameStringObj[memberList[i].type];					
+				}				
+				
+				return newFileNameObj;
+			}
+			
+			// 加载文件成功
+			private function _onLoadComplete(evt :Event) :void
+			{
+				var loader: URLLoader = evt.target as URLLoader;
+				var fileURL: String = m_loadInfoMap[loader];
+				var dataArray :ByteArray = loader.data;
+				// 以简体中文的字符集来转码
+				var dataStr :String = dataArray.readMultiByte(dataArray.length, "gb2312");
+				
+				var fileXml :XML =  new XML(dataStr);
+				if (fileXml == null)
+				{
+					m_errorList.push("Error onLoadXML_Complete: fileXml is null!");
+					return;
+				}
+				
+				m_taLog.appendText("onLoadXML_Complete: " + fileXml.@filename + "\n");
+				
+				// 读取附加属性配置
+				if (fileXml.@filename == "AdditionalMember")
+				{
+					// 保存附加参数配置XMl信息
+					m_additionalMemberXml = fileXml;
+					// 存入读取完成标签
+					m_loadCompleteList.push("onLoadXML_Complete");
+					return;
+				}
+				
+				// 创建As类文件
+				_createAsFileText(fileXml, fileURL);
+				
+				// 存入读取完成标签
+				m_loadCompleteList.push("onLoadXML_Complete");
+				
+				if (fileXml.@filename == "Common")
+				{					
+					// 开始加载第二部分文件
+					var fileReq :URLRequest;
+					var fileLoader :URLLoader;
+					
+					for (var i:String in m_xmlFileNameList2)
+					{
+						fileReq = new URLRequest(m_configInputPath + m_xmlFileNameList2[i]);
+						fileLoader = new URLLoader();
+						
+						// 以二进制方式接收数据
+						fileLoader.dataFormat = URLLoaderDataFormat.BINARY;
+						
+						// 注册侦听
+						fileLoader.addEventListener(Event.COMPLETE, _onLoadComplete);
+						fileLoader.addEventListener(IOErrorEvent.IO_ERROR, _onLoadXMLIOError);
+						
+						// 读取Xml文件
+						fileLoader.load(fileReq);
+					}
+				}
+			}
+			
+			/**
+			 * 加载失败响应
+			 **/
+			private function _onLoadXMLIOError(evt :IOErrorEvent) :void
+			{
+				trace("[ERROR] ClassMaker2::_onLoadXMLIOError - Can't load file: " + evt.text);
+				m_errorList.push("Error onLoadXML_IOError: " + evt.text);
+			}
+			
+			// 创建AS类文件
+			private function _createAsFileText(fileXml :XML, fileURL: String) :void
+			{
+				var nodeList :XMLList = fileXml.children();						
+				var ownerXmlFileName :String = fileXml.@filename;				
+				var className :String;
+				var clsssDescription :String;
+				var classInfoXml :XML;
+				var findCount :int = 0;
+				var findClassNameList :Array = new Array();
+				
+				// 检查主数据类的完整性
+				for (var index :String in nodeList)
+				{
+					if (nodeList[index] == null 
+						|| nodeList[index].children().length() == 0)
+					{
+						continue;
+					}
+					
+					if (nodeList[index].localName() == "struct"
+						|| nodeList[index].localName() == "union")
+					{						
+					}
+					else
+					{
+						continue;
+					}
+					
+					className = nodeList[index].@name;
+					if (className == null)
+					{
+						continue;
+					}
+					
+					// xml文件中类名称以_Flash结尾并且rootflag为1则为类属性入口
+					// 如果xml文件为Common，则创建该文件下所有数据类
+					if ((className.indexOf("_Flash") != -1 && nodeList[index].@rootflag == "1")
+						|| ownerXmlFileName == "Common")
+					{
+						// 找到主数据类名称
+						findCount++;
+						findClassNameList.push(className);
+					}
+				}
+				
+				if (findCount == 0)
+				{
+					m_errorList.push("[ERROR] ClassMaker2::_createAsFileText - main data class of " + ownerXmlFileName + " count is " + findCount);
+					return;
+				}
+				
+				for (index in nodeList)
+				{
+					if (nodeList[index] == null || nodeList[index].children().length() == 0)
+					{
+						continue;
+					}
+					
+					if (nodeList[index].localName() == "struct"
+						|| nodeList[index].localName() == "union")
+					{						
+					}
+					else
+					{
+						continue;
+					}
+					
+					className = nodeList[index].@name;
+					clsssDescription = nodeList[index].@desc;
+					classInfoXml = new XML();
+					
+					// xml文件中类名称以_Flash结尾并且rootflag为1则为类属性入口
+					// 如果xml文件为Common，则创建该文件下所有数据类
+					if (((className.indexOf("_Flash") != -1 && nodeList[index].@rootflag == "1")
+						|| ownerXmlFileName == "Common") && "UnitPosition" != className)
+					{
+						var memberInfoList :Array = new Array();
+						var asFileStr :String = m_configDataMaker.getConfigDataClassText(fileURL, className,
+																														nodeList[index],
+																														nodeList,
+																														m_additionalMemberXml,
+																														memberInfoList, m_extractStrEnabled);
+						
+						// 存入Text信息
+						m_dataController.m_fileStringObj[className] = asFileStr;
+						m_dataController.m_fileNameStringObj[className] = className + "\.as";
+						
+						// 检查是否还有未创建的非主数据类
+						_createChildDataClassAsFile(nodeList, fileURL, memberInfoList);
+					}
+				}
+			}
+						
+			/**
+			 * 生成非主数据类的As文件
+			 * @param nodeList 所有的节点信息
+			 * @param ownerXmlFileName 描述数据类的XML文件名称
+			 * @param memberInfoList 类成员信息
+			 * */
+			private function _createChildDataClassAsFile(nodeList :XMLList, fileURL :String, memberInfoList :Array) :void
+			{
+				var asFileStr :String;
+				var count :int = memberInfoList.length;
+				
+				// 生成非主AS的类
+				for (var i :int = 0; i < memberInfoList.length; ++i)
+				{
+					if (m_dataController.checkMemberType(memberInfoList[i].type, nodeList) != 1)
+					{
+						continue;
+					}
+					
+					// 检查该类型是否已被创建
+					for (var key :String in m_dataController.m_fileStringObj)
+					{
+						if (key != memberInfoList[i].type)
+						{
+							continue;
+						}
+						
+						if (m_dataController.m_fileStringObj[key] != "")
+						{
+							// 过滤已经生成Text的类
+							continue;
+						}	
+						
+						for (var index :String in nodeList)
+						{
+							if (nodeList[index] == null || nodeList[index].children().length() == 0)
+							{
+								continue;
+							}
+														
+							var className :String = nodeList[index].@name;
+							if (className != key || "UnitPosition" == className)
+							{	
+								continue;
+							}																			
+						
+							// 找到需要创建的类
+							var classMemberList :Array = new Array();
+							var asStr :String = m_configDataMaker.getConfigDataClassText(fileURL, className, 
+																													nodeList[index],
+																													nodeList,
+																													m_additionalMemberXml,
+																													classMemberList, m_extractStrEnabled);
+														
+							// 存入Text信息
+							m_dataController.m_fileStringObj[className] = asStr;
+							m_dataController.m_fileNameStringObj[className] = className + "\.as";		
+							if (asStr == null)
+							{
+								trace("error1");	
+							}
+							
+							// 检查是否还有未创建的非主数据类
+							_createChildDataClassAsFile(nodeList, fileURL, classMemberList);
+						}
+					}
+				}
+			}
+			
+			/**
+			 * 读取XML文件完成事件
+			 * */
+			private function _onLoadKeywordXML_Complete(evt :Event) :void
+			{
+				var dataArray :ByteArray = evt.target.data;
+				// 以简体中文的字符集来转码
+				var dataStr :String = dataArray.readMultiByte(dataArray.length, "gb2312");
+				
+				var fileXml :XML =  new XML(dataStr);
+				if (fileXml == null)
+				{
+					m_errorList.push("Error _onLoadKeywordXML_Complete: fileXml is null!");
+					return;
+				}
+				
+				// 序列化XML数据
+				var keywordDataObj :Object = m_keywordMaker.getKeywordData(fileXml);
+				
+				var keywordFileStr: String = m_keywordMaker.createKeywordAsFile(keywordDataObj);
+				// 保存文件
+				_saveAsFileByName(keywordFileStr, m_outputPath, "KeyWord.ts");
+				
+				trace("ClassMaker2: Keyword.ts created!\n");
+				m_taLog.appendText("Create Keyword.ts Success!\n");
+			}
+			
+			/**
+			 * 读取XML文件完成事件
+			 * */
+			private function _onLoadErrorIdXML_Complete(evt :Event) :void
+			{
+				var dataArray :ByteArray = evt.target.data;
+				// 以简体中文的字符集来转码
+				var dataStr :String = dataArray.readMultiByte(dataArray.length, "utf-8");
+				
+				var fileXml :XML =  new XML(dataStr);
+				if (fileXml == null)
+				{
+					m_errorList.push("Error onLoadErrorIdXML_Complete: fileXml is null!");
+					return;
+				}
+				
+				// 序列化XML数据
+				var errorIdDataObj :Object = m_errorIdMaker.getErrorIdData(fileXml, m_tinyErrors);
+				
+				var errorIdFileStr: String = m_errorIdMaker.createErrorIdFileContent(errorIdDataObj);
+				// 保存文件
+				_saveAsFileByName(errorIdFileStr, m_outputPath, "ErrorId.ts");
+				// 生成KeyWord的As文件
+				trace("ClassMaker2: ErrorId.ts created!\n");
+				m_taLog.appendText("Create ErrorId.ts Success!\n");
+			}
+			
+			private function _saveAsFileByName(fileStr :String, outputPath :String, fileName :String) :void
+			{
+				var newFile :File = new File(outputPath + fileName);
+				// 删除旧文件
+				//newFile.deleteFile();					
+				
+				// 写入文件
+				var fileController :FileStream = new FileStream();
+				fileController.open(newFile, FileMode.WRITE);
+				fileController.writeUTFBytes(fileStr);
+				fileController.close();
+			}
+			
+			/**
+			 * 读取Xml文件失败事件
+			 **/
+			private function _onLoadXML_IOError(evt :IOErrorEvent) :void
+			{
+				var loader: URLLoader = evt.target as URLLoader;
+				var url: String = m_loadInfoMap[loader];
+				trace("[ERROR] ClassMaker::onLoadXML_IOError: " + url);
+				m_taLog.appendText("Error onLoadXML_IOError: " + url + "\n");
+				m_errorList.push("Error onLoadXML_IOError: " + url);
+			}
+		]]>
+	</fx:Script>
+</s:WindowedApplication>

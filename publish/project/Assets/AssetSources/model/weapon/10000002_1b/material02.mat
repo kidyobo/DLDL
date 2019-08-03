@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: material02
+  m_Shader: {fileID: 4800000, guid: ca0bd4ff402b1d3428ae78e28630533f, type: 3}
+  m_ShaderKeywords: _CLIPALPHA _EMISSION _LIGHT_ON _MASK_ON
+  m_LightmapFlags: 1
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - <noninit>:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CutMaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LightTex:
+        m_Texture: {fileID: 2800000, guid: 92422113356d36b4c9fa6c5287c1398f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 22796cb6adc76564e90a958d574dcd9c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 2800000, guid: c77853284b70ada45a1f0988b43ef886, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - <noninit>: 0
+    - _Brightness: 1
+    - _CutMaskRotate: 0
+    - _CutMaskValue: 1.1
+    - _CutoffValue: 0.5
+    - _FlowRotate: 0
+    - _LightScale: 2
+    - _LuminosityAmount: 0
+    - _MaskRotate: 0
+    - _Rotate: 0
+    - _Scroll2X: 1
+    - _Scroll2Y: 0
+    m_Colors:
+    - <noninit>: {r: 0, g: 1.4553988e-34, b: 0, a: 1.4553915e-34}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _FlowUVParam: {r: 0, g: 0, b: 0, a: 1}
+    - _HurtColor: {r: 0, g: 0, b: 0, a: 0}
+    - _MaskUVParam: {r: 0, g: 0, b: 1, a: 1}
+    - _RGBOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _RimColor: {r: 0, g: 0, b: 0, a: 0}
+    - _UVParam: {r: 0, g: 0, b: 1, a: 1}
+    - _UVTile: {r: 0, g: 0, b: 1, a: 1}

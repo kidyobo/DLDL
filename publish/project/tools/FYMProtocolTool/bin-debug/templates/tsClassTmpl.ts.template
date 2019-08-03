@@ -1,0 +1,140 @@
+------------------------------------------------------
+[protocol_def]
+declare module Protocol {
+    /**
+     * 协议结构定义(工具生成，请勿手动修改)
+     * @author TsClassMaker
+     * @exports
+     * @version %msgVersion%
+     */
+    export class FyMsg {
+        m_stMsgHead: MsgHead;
+        
+        m_msgBody: any;
+    }
+    
+    /**
+     * 协议头结构定义(工具生成，请勿手动修改)
+     * @author TsClassMaker
+     * @exports
+     * @version %msgVersion%
+     */
+    export class MsgHead {
+        m_shMsgVersion: number;
+        
+        m_uiTimeStamp_Low: number;
+
+        m_uiTimeStamp_High: number;
+
+        m_uiMsgID: number;
+
+        m_uiUin: number;
+
+        m_iFeedback: number;
+
+        m_uiBodyLength: number;
+    }
+
+%content%
+}
+------------------------------------------------------
+[SendMsgUtil_def]
+import {Macros} from "System/protocol/Macros";
+%imports%
+/**
+ * Request类协议工具(工具生成，请勿手动修改)
+ * @author TsClassMaker
+ * @exports
+ * @version %msgVersion%
+ */
+export class SendMsgUtil {
+    private static _msg: Protocol.FyMsg = {m_stMsgHead:{m_shMsgVersion:%msgVersion%, m_uiTimeStamp_Low:0, m_uiTimeStamp_High:0, m_uiMsgID:0, m_uiUin:0, m_iFeedback:0, m_uiBodyLength:0}} as Protocol.FyMsg;
+    private static _bodyObjects = {};
+    
+%contents%
+}
+------------------------------------------------------
+[NewProtocolStruct_def]
+/**
+ * 创建1个%ProtocolName%的实例(工具生成，请勿手动修改)
+ * @author TsClassMaker
+ * @exports
+ * @version %msgVersion%
+ */
+export function new%ProtocolName%(): Protocol.%ProtocolName% {
+    return %contents% as Protocol.%ProtocolName%;
+}
+------------------------------------------------------
+[SendMsgUtil_item_def]
+static get%requestName%(): Protocol.FyMsg {
+    let msgid: number = Macros.%msgIDName%;
+    SendMsgUtil._msg.m_stMsgHead.m_uiMsgID = msgid;
+    let body: Protocol.%requestName% = SendMsgUtil._bodyObjects[msgid];
+    if(null == body) {
+        body = new%requestName%();
+        SendMsgUtil._bodyObjects[msgid] = body;
+    }
+    SendMsgUtil._msg.m_msgBody = body;
+    return SendMsgUtil._msg;
+}
+------------------------------------------------------
+[new_obj_def]
+%objName% = {} as %objType%;
+------------------------------------------------------
+[new_array_def]
+%arrName% = [] as Array<%objType%>;
+for(i = 0; i < %arrCount%; i++) {
+    %arrName%.push();
+}
+------------------------------------------------------
+[interface_def]
+/**
+ * %desc%(defined in %defXml%)
+ * @author TsClassMaker
+ * @exports
+ * @version %version%
+ */
+export interface %interfaceName% %extends%{
+%attributes%
+}
+------------------------------------------------------
+[class_def]
+/**
+ * %desc%(defined in %defXml%)
+ * @author TsClassMaker
+ * @exports
+ * @version %version%
+ */
+export class %className% %extends%{
+%attributes%
+%ctor%
+}
+------------------------------------------------------
+[ctor_def]
+/**
+* Creates an instance of %className%
+*
+* @constructor
+* @this {%className%}
+*/
+constructor(){
+%ctorContent%
+}
+------------------------------------------------------
+[attribute_def]
+<c>/**
+ * %attributeDesc%
+ */</c>
+%decoration%%attributeName%%optional%: %attributeType%;
+------------------------------------------------------
+[attribute_arr_def]
+<c>/**
+ * %attributeDesc%
+ */</c>
+%decoration%%attributeName%%optional%: Array<%attributeType%>;
+------------------------------------------------------
+[attribute_static_const_def]
+<c>/**
+ * %attributeDesc%
+ */</c>
+%decoration%static readonly %attributeName%: %attributeType% = %attributeValue%;

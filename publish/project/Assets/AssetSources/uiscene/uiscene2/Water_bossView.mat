@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Water_bossView
+  m_Shader: {fileID: 4800000, guid: 7170307fc8df3b54495061c63e104699, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 2600
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Normals:
+        m_Texture: {fileID: 2800000, guid: fc8ef77f113938149a9b686ed8ed8409, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Shadermap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Cutoff: 0.5
+    - _Depth: 18.2
+    - _Depthdarkness: 0.631
+    - _Fresnelexponent: 25.64
+    - _Glossiness: 0.106
+    - _RimSize: 1.9
+    - _Rimfalloff: 1.17
+    - _Rimtiling: 1
+    - _SurfaceHighlight: 1
+    - _SurfaceHightlighttiling: 2.07
+    - _Surfacehightlightsize: 0.279
+    - _Tiling: 0.98
+    - _Transparency: 0.35
+    - _Wavesspeed: 0.2
+    - _Worldspacetiling: 0
+    m_Colors:
+    - _FresnelColor: {r: 0.64705884, g: 0.37406033, b: 0.028546702, a: 1}
+    - _RimColor: {r: 0.9424948, g: 1, b: 0.4044118, a: 0.228}
+    - _WaterColor: {r: 0.5437392, g: 0.7833552, b: 0.8308824, a: 1}
+--- !u!1002 &2100001
+EditorExtensionImpl:
+  serializedVersion: 6

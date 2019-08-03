@@ -1,0 +1,29 @@
+﻿export class TypeCacher {
+    public static Animator: UnityEngine.Type = UnityEngine.Animator.GetType();
+    public static SkinnedMeshRenderer: UnityEngine.Type = UnityEngine.SkinnedMeshRenderer.GetType();
+    public static MeshRenderer: UnityEngine.Type = UnityEngine.MeshRenderer.GetType();
+    public static Renderer: UnityEngine.Type = UnityEngine.Renderer.GetType();
+    public static BoxCollider: UnityEngine.Type = UnityEngine.BoxCollider.GetType();
+    public static ParticleSystem: UnityEngine.Type = UnityEngine.ParticleSystem.GetType();
+    public static Slider: UnityEngine.Type = UnityEngine.UI.Slider.GetType();
+    public static RectTransform: UnityEngine.Type = UnityEngine.RectTransform.GetType();
+    public static Transform: UnityEngine.Type = UnityEngine.Transform.GetType();
+    public static ElementsMapper: UnityEngine.Type = Game.ElementsMapper.GetType();
+    public static Text: UnityEngine.Type = UnityEngine.UI.Text.GetType();
+    public static UIText: UnityEngine.Type = UnityEngine.UI.UIText.GetType();
+    public static InputField: UnityEngine.Type = UnityEngine.UI.InputField.GetType();
+    public static ActiveToggle: UnityEngine.Type = UnityEngine.UI.ActiveToggle.GetType();
+    public static Image: UnityEngine.Type = UnityEngine.UI.Image.GetType();
+    public static RawImage: UnityEngine.Type = UnityEngine.UI.RawImage.GetType();
+    public static ActiveToggleGroup: UnityEngine.Type = UnityEngine.UI.ActiveToggleGroup.GetType();
+    public static Scrollbar: UnityEngine.Type = UnityEngine.UI.Scrollbar.GetType();
+    public static ScrollRect: UnityEngine.Type = UnityEngine.UI.ScrollRect.GetType();
+    public static Dropdown: UnityEngine.Type = UnityEngine.UI.Dropdown.GetType();
+    public static UIPolygon: UnityEngine.Type = Game.UIPolygon.GetType();
+    public static UGUIAltas: UnityEngine.Type = Game.UGUIAltas.GetType();
+    public static Canvas: UnityEngine.Type = UnityEngine.Canvas.GetType();
+    public static Camera: UnityEngine.Type = UnityEngine.Camera.GetType();
+    public static CanvasGroup: UnityEngine.Type = UnityEngine.CanvasGroup.GetType();
+    public static AudioSource: UnityEngine.Type = UnityEngine.AudioSource.GetType();
+    public static type: UnityEngine.Type = new UnityEngine.Type();
+}

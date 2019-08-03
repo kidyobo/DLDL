@@ -1,0 +1,404 @@
+{
+	/*
+	// Place your snippets for TypeScript here. Each snippet is defined under a snippet name and has a prefix, body and
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the
+	// same ids are connected.
+	// Example:
+	"Print to console": {
+		"prefix": "log",
+		"body": [
+			"console.log('$1');",
+			"$2"
+		],
+		"description": "Log output to console"
+	}
+	*/
+	/********************************** 变量相关 *****************************/
+	"Variable_Temp": {
+		"prefix": "$var",
+		"body": [
+			"let ${1:name} = ${2:value}"
+		],
+		"description": "生成局部变量"
+	},
+	"Variable_Global_Private": {
+		"prefix": "$var_gprivate",
+		"body": [
+			"private ${2:name}:${3:type};$0"
+		],
+		"description": "生成全局private变量"
+	},
+	"Variable_Global_Protected": {
+		"prefix": "$var_gprotected",
+		"body": [
+			"protected ${2:name}:${3:type};$0"
+		],
+		"description": "生成全局protected变量"
+	},
+	"Variable_Global_Public": {
+		"prefix": "$var_gpublic",
+		"body": [
+			"${2:name}:${3:type};$0"
+		],
+		"description": "生成全局public变量"
+	},
+	"MagicNumber": {
+		"prefix": "$var_magic",
+		"body": [
+			"static readonly ${1:name}:number = ${2:value};"
+		],
+		"description": "生成静态只读变量"
+	},
+	/********************************** 函数相关 *****************************/
+	"Function_Public": {
+		"prefix": "$func_public",
+		"body": [
+			"${1:name}($2)$3{",
+			"$0",
+			"}"
+		],
+		"description": "生成public函数"
+	},
+	"Function_Private": {
+		"prefix": "$func_private",
+		"body": [
+			"private _${1:name}($2)$3{",
+			"$0",
+			"}"
+		],
+		"description": "生成private函数"
+	},
+	"Function_Protected": {
+		"prefix": "$func_protect",
+		"body": [
+			"protect _${1:name}($2)$3{",
+			"$0",
+			"}"
+		],
+		"description": "生成private函数"
+	},
+	"Constructor": {
+		"prefix": "$constructor",
+		"body": [
+			"constructor($1){",
+			"$0",
+			"}"
+		],
+		"description": "生成构造函数"
+	},
+	"Prop": {
+		"prefix": "$Properties",
+		"body": [
+			"private _${1:name}:${2:type};",
+			"",
+			"get ${1:name}():${2:type}{",
+			"$3",
+			"return this._${1:name};",
+			"}",
+			"",
+			"set ${1:name}(value:${2:type}){",
+			"$4",
+			"this._${1:name} = value;",
+			"}"
+		],
+		"description": "生成字段的GetSet函数"
+	},
+	/********************************** 类相关 *****************************/
+	"Class": {
+		"prefix": "$class",
+		"body": [
+			"class ${1:name}{",
+			"constructor($2){",
+			"$3",
+			"}",
+			"$0",
+			"}"
+		],
+		"description": "生成类"
+	},
+	"Enum": {
+		"prefix": "$enum",
+		"body": [
+			"export enum ${1:name}{",
+			"$0",
+			"}"
+		],
+		"description": "生成枚举"
+	},
+	/********************************** 循环相关 *****************************/
+	"For": {
+		"prefix": "$for",
+		"body": [
+			"for(let i = 0; i < ${1:len}; i++){",
+			"$0",
+			"}"
+		],
+		"description": "生成For循环"
+	},
+	"ForBack": {
+		"prefix": "$for_back",
+		"body": [
+			"for(let i = ${1:len} - 1; i >= 0; i--){",
+			"$0",
+			"}"
+		],
+		"description": "生成For倒序循环"
+	},
+	"ForOf": {
+		"prefix": "$fof",
+		"body": [
+			"for(let value of ${1:values}){",
+			"$0",
+			"}"
+		],
+		"description": "生成取值遍历"
+	},
+	"ForIn": {
+		"prefix": "$fin",
+		"body": [
+			"for(let key in ${1:values}){",
+			"$0",
+			"}"
+		],
+		"description": "生成取键遍历"
+	},
+	"While": {
+		"prefix": "$while",
+		"body": [
+			"while(${1:option}){",
+			"$0",
+			"}"
+		],
+		"description": "生成While循环"
+	},
+	"DoWhile": {
+		"prefix": "$dowhile",
+		"body": [
+			"do{",
+			"$0",
+			"}while(${1:option})"
+		],
+		"description": "生成DoWhile循环"
+	},
+	/********************************** 条件相关 *****************************/
+	"If": {
+		"prefix": "$if",
+		"body": [
+			"if(${1:option}){",
+			"$0",
+			"}"
+		],
+		"description": "生成If条件"
+	},
+	"IfSample": {
+		"prefix": "$if_sample",
+		"body": [
+			"if(${1:option})$0"
+		],
+		"description": "生成单句If条件"
+	},
+	"IfElse": {
+		"prefix": "$ifel",
+		"body": [
+			"if(${1:option}){",
+			"$2",
+			"}",
+			"else{",
+			"$3",
+			"}"
+		],
+		"description": "生成Ifelse条件"
+	},
+	"IfReturn": {
+		"prefix": "$ifre",
+		"body": [
+			"if(${1:option}){",
+			"$2",
+			"return$3;",
+			"}"
+		],
+		"description": "生成IfReturn条件"
+	},
+	"IfReturnSample": {
+		"prefix": "$ifre_sample",
+		"body": [
+			"if(${1:option}) return$2;"
+		],
+		"description": "生成单句IfReturn条件"
+	},
+	"Switch": {
+		"prefix": "$switch",
+		"body": [
+			"switch(${1:value}){",
+			"case ${2:option}:",
+			"$3",
+			"break;",
+			"$4",
+			"default:",
+			"$5",
+			"break;",
+			"}"
+		],
+		"description": "生成Switch条件"
+	},
+	"Three": {
+		"prefix": "$?:",
+		"body": [
+			"(${1:option1}?${2:result1}:${3:result2})"
+		],
+		"description": "生成三目表达式"
+	},
+	/********************************** 项目相关 *****************************/
+	"AddClick": {
+		"prefix": "$click_event",
+		"body": [
+			"this.addClickListener(${1:btn}, this.${2:eventFunction});"
+		],
+		"description": "生成点击事件"
+	},
+	"GetElement": {
+		"prefix": "$elem",
+		"body": [
+			"this.elems.${1|getElement,getUIList,getText,getTransform,getImage|}('$2');"
+		],
+		"description": "生成获取组件代码"
+	},
+	"SendMsg": {
+		"prefix": "$msg",
+		"body": [
+			"G.ModuleMgr.netModule.sendMsg(ProtocolUtil.${1:request}($2));"
+		],
+		"description": "生成协议代码"
+	},
+	"GData": {
+		"prefix": "$data",
+		"body": [
+			"G.DataMgr$1;"
+		],
+		"description": "生成Data代码"
+	},
+	"Log": {
+		"prefix": "$log",
+		"body": [
+			"uts.log(${1:'message'});"
+		],
+		"description": "生成Log代码"
+	},
+	"SetClickable": {
+		"prefix": "$clickable",
+		"body": [
+			"UIUtils.setButtonClickAble(${1:elem}, ${2|false,true|});"
+		],
+		"description": "生成BtnClickable代码"
+	},
+	"FloatTip": {
+		"prefix": "$tip_float",
+		"body": [
+			"G.TipMgr.addMainFloatTip(${1:'message'});"
+		],
+		"description": "生成FloatTip代码"
+	},
+	"MessageBox": {
+		"prefix": "$msgbox",
+		"body": [
+			"G.TipMgr.showConfirm(${1:'message'}, ConfirmCheck.${2|withCheck,noCheck|}, ${3:'确定|取消'}, delegate(this, this.${4:callBackFunction}));"
+		],
+		"description": "生成MessageBox代码"
+	},
+	"OpenDialog": {
+		"prefix": "$openDialog",
+		"body": [
+			"G.Uimgr.createForm<${1:XXView}>(${1:XXView}).open(KeyWord.${2:ACT_FUNCTION_});"
+		],
+		"description": "生成打开面板代码"
+	},
+	"ProgressBar": {
+		"prefix": "$progress",
+		"body": [
+			"let perNum = ${1:perNum};",
+			"Game.Tools.SetGameObjectLocalScale(this._progressBar, perNum, 1, 1);"
+		],
+		"description": "生成打开progress代码"
+	},
+	"Function_msgBox": {
+		"prefix": "$func_msgbox",
+		"body": [
+			"private ${1:name}(status: number, isCheckSelected: boolean, ${2:data}){",
+			"if (MessageBoxConst.yes != status) return;",
+			"$0",
+			"}"
+		],
+		"description": "生成MessageBox代码"
+	},
+	"Timer": {
+		"prefix": "$timer",
+		"body": [
+			"let timer = new Game.Timer(${1:'name'}, ${2:1000}, ${3:1}, delegate(this, this.${4:callBackFunction}));"
+		],
+		"description": "生成Timer代码"
+	},
+	"Tip": {
+		"prefix": "$tip",
+		"body": [
+			"if (null == this.${1:tipData}){",
+			"this.${1:tipData} = new ${2|TextTipData,ItemTipData,SkillTipData|}();",
+			"}",
+			"",
+			"this.${1:tipData}.setTipData(${3:config});",
+			"G.ViewCacher.tipsView.open(this.${1:tipData}, TipFrom.${4|normal,bag,chat,takeOut,putIn,takeOff,equip,material,guildStore,tanbao,replace_1|});"
+		],
+		"description": "生成Tip代码"
+	},
+	"RewardList": {
+		"prefix": "$rewardlist",
+		"body": [
+			"let len = ${1:len};",
+			"this.${3:_rewardList}.Count = len;",
+			"for (let i =0; i < len; i++){",
+			"let iconItem = new IconItem();",
+			"let config = ${2:config};",
+			"iconItem.setUsuallyIcon(this.${3:_rewardList}.GetItem(i).gameObject);",
+			"iconItem.setTipFrom(TipFrom.normal);",
+			"iconItem.updateById(config.${4:m_iDropID}, config.${5:m_uiDropNumber});",
+			"iconItem.updateIcon();",
+			"}"
+		],
+		"description": "生成初始化RewardList代码"
+	},
+	"GetItemList": {
+		"prefix": "$getItemList",
+		"body": [
+			"private getListItem(index: number): ${1:ItemType}{",
+			"if (index < this.${2:_listItems}.length){",
+			"return this.${2:_listItems}[index];",
+			"}",
+			"",
+			"let item = new ${1:ItemType}();",
+			"let gb = this.${3:_lists}.GetItem(index).gameObject;",
+			"item.setCommonpents(gb);",
+			"this.${2:_listItems}.push(item);",
+			"return item;",
+			"}"
+		],
+		"description": "生成初始化GetItemList代码"
+	},
+	"LoadAvatar": {
+		"prefix": "$avatar",
+		"body": [
+			"let roleInfo = ${1:roleInfo};",
+			"if (null == this._roleAvatar) this._roleAvatar = new UIRoleAvatar(this._modelRootTR, this._modelRootTR);",
+			"",
+			"this._roleAvatar.setAvataByList(roleInfo.m_stAvatarList,",
+			"roleInfo.m_stBaseProfile.m_cProfession, roleInfo.m_stBaseProfile.m_cGender);"
+		],
+		"description": "生成初始化LoadAvatar代码"
+	},
+	"LoadModel": {
+		"prefix": "$model",
+		"body": [
+			"G.ResourceMgr.loadModel(this._modelRootTR, UnitCtrlType.${1|none,hero,role,monster,npc,dropThing,collection,pet,lingbao,faqi,guoyunGoods,wing,ride,weapon,zhenfa,chenghao,shengqi,fenghuang,buff,other,shenji,boss|}, ${2:modelID}, this.sortingOrder, ${3:500});"
+		],
+		"description": "生成初始化LoadModel代码"
+	}
+}

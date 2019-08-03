@@ -1,0 +1,104 @@
+------------------------------------------------------
+[gameConfig_def]
+declare module GameConfig {
+%content%
+
+    /**
+    * UnitPosition(defined in tsClassTmpl.ts.template)
+    * @author TsClassMaker@%pcName%
+    * @exports
+    * @version %version%
+    **/
+    export class UnitPosition {
+        /**x坐标*/
+        m_uiX: number;
+
+        /**y坐标*/
+        m_uiY: number;
+    }
+}
+------------------------------------------------------
+[keyword_def]
+/**
+* 关键字表(defined in tsClassTmpl.ts.template)
+* @author TsClassMaker@%pcName%
+* @exports
+* @version %version%
+**/
+export class KeyWord {
+%declare%
+
+    static keywordTable = {};
+
+    static getDesc(group: number, keyword: number): string {
+        let desc: string = null;
+        let groupDict = KeyWord.keywordTable[group];
+        if(null != groupDict) {
+            desc = groupDict[keyword];
+        }
+        return desc ? desc : "";
+    }
+}
+
+%cname%
+------------------------------------------------------
+[enum_def]
+/**
+* %desc%(defined in %defXml%)
+* @author TsClassMaker@%pcName%
+* @exports
+* @version %version%
+**/
+export enum %enumName% {
+%contents%
+}
+------------------------------------------------------
+[enum_item_def]
+<c>/**%desc%*/</c>
+%itemName% = %itemValue%, 
+------------------------------------------------------
+[interface_def]
+/**
+* %desc%(defined in %defXml%)
+* @author TsClassMaker@%pcName%
+* @exports
+* @version %version%
+**/
+export interface %interfaceName% %extends%{
+%attributes%
+}
+------------------------------------------------------
+[class_def]
+/**
+* %desc%(defined in %defXml%)
+* @author TsClassMaker@%pcName%
+* @exports
+* @version %version%
+**/
+export class %className% %extends%{
+%attributes%
+%ctor%
+}
+------------------------------------------------------
+[ctor_def]
+/**
+* Creates an instance of %className%
+*
+* @constructor
+* @this {%className%}
+*/
+constructor(){
+%ctorContent%
+}
+------------------------------------------------------
+[attribute_def]
+<c>/**%attributeDesc%*/</c>
+%decoration%%attributeName%%optional%: %attributeType%;
+------------------------------------------------------
+[attribute_arr_def]
+<c>/**%attributeDesc%*/</c>
+%decoration%%attributeName%%optional%: Array<%attributeType%>;
+------------------------------------------------------
+[attribute_static_const_def]
+<c>/**%attributeDesc%*/</c>
+%decoration%static readonly %attributeName%: %attributeType% = %attributeValue%;

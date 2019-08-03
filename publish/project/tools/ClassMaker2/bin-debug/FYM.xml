@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="GBK" standalone="yes" ?>
+<config>
+	<kylinConfig namespace="fygame.modules.data.xmlData" inputPath="xml\">
+		<firstLoading>
+			<file name="AdditionalMember.xml"/>
+			<file name="Common.xml"/>
+		</firstLoading>
+		
+		<secondLoading>
+			<file name="Achievement.Main.xml"/>
+			<file name="Buff.Main.xml"/>
+			<file name="Errno.Main.xml"/>
+			<file name="Monster.Main.xml"/>
+			<file name="NPC.Main.xml"/>
+			<file name="Quest.Main.xml"/>
+			<file name="RoleAttribute.Main.xml"/>
+			<file name="Skill.Main.xml"/>
+			<file name="Thing.Main.xml"/>
+			<file name="Pinstance.Main.xml"/>
+			<file name="SystemParameters.Main.xml"/>
+			<file name="Resources.Main.xml"/>
+			<file name="Navigation.Main.xml"/>
+			<file name="Scene.Main.xml"/>
+			<file name="Item.Drop.xml"/>
+			<file name="GuildArea.Main.xml"/>
+			<file name="Navigation.Main.xml"/>
+			<file name="Activity.xml"/>
+			<file name="Rank.xml"/>
+			<file name="VIP.Main.xml"/>
+			<file name="chongmai.xml" />
+			<file name="Lottery.xml" />
+			<file name="TimeLimit.xml" />
+			<file name="Platform.xml" />
+			<file name="StartActivityGift.Main.xml" />
+			<file name="QA.xml" />
+			<file name="ZhuFuXiTong.xml"/>
+			<file name="BianQiang.xml"/>
+			<file name="FaBao.xml"/>
+			<file name="ZYCM.xml"/>
+			<file name="JJCRankReward.xml"/>
+			<file name="TianDiJingJi.xml"/>
+			<file name="RenXing.xml"/>
+			<file name="ZYZH.xml"/>
+			<file name="Beauty.Main.xml"/>
+			<file name="MergeActivityGift.Main.xml"/>
+			<file name="GiftCenter.xml"/>
+			<file name="joke.xml"/>
+		</secondLoading>
+	</kylinConfig>
+	
+	<errorId namespace="fygame.modules.data.enum" inputPath="errorId\" >
+		<file name="Errno.config.xml"/>
+	</errorId>
+	
+	<keyword namespace="fygame.utils.keyword" inputPath="xml\" >
+		<file name="KeyWord.xml"/>
+	</keyword>
+	
+	<tinyerrorId>
+		<errorId name="EQEC_UinInBlackList" />
+	</tinyerrorId>
+</config>

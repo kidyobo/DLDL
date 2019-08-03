@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+	<Metadata>
+		<Identity Id="003a0f14-2226-41a9-8f63-dce243af9932" Version="1.0" Language="en-US" Publisher="grebulon.com" />
+		<DisplayName>Strip'em</DisplayName>
+		<Description xml:space="preserve">Visual Studio 2013 package. Save files with Unix or Windows line endings.</Description>
+		<MoreInfo>http://www.grebulon.com/software/stripem.php</MoreInfo>
+	</Metadata>
+	<Installation InstalledByMsi="false">
+		<InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="14.0" />
+	</Installation>
+	<Dependencies>
+		<Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.0, 5.0)" />
+		<Dependency Id="Microsoft.VisualStudio.MPF.12.0" DisplayName="Visual Studio MPF 12.0" d:Source="Installed" Version="[12.0,15.0)" />
+	</Dependencies>
+	<Assets>
+		<Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+	</Assets>
+</PackageManifest>

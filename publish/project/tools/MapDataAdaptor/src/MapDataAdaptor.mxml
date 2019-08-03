@@ -1,0 +1,809 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   width="1440" height="900" minWidth="1440" minHeight="900" creationComplete="_init()">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import fygame.assert;
+			import fygame.modules.scene.utils.scenePath.CScenePath;
+			import fygame.modules.scene.utils.scenePath.TSceneBlock;
+			
+			import loader.MELoader;
+			
+			import mapEditor.BlockMerger;
+			import mapEditor.GateInfo;
+			import mapEditor.MapInfo;
+			import mapEditor.NPCInfo;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			
+			import spark.components.List;
+			import spark.components.TextArea;
+			
+			import tools.LogHelper;
+			
+			import ui.CbItemData;
+			
+			private const ISLAND_BMD_DEFAULT_COLOR: uint = 0xffccdd;
+			
+			private const m_colors: Vector.<uint> = new <uint>[0xff0000, 0x1ab5f6, 0xb77f7f, 0x34dfea, 0x7a2c6c, 0xc320f2, 0x6c0dee, 0x2e8d85, 0x23f4a3, 0x0df43e, 0xf96d18, 0xdcf841, 0xa7ee77, 0xf0cd2a];
+			
+			private var m_fileCbDatas: Array;
+			
+			private var m_files: Vector.<File>;
+			
+			private var m_rscIDs: Vector.<int>;
+			
+			private var m_rscDatas: Vector.<ByteArray>;
+			
+			private var m_thumbUrls: Vector.<String>;
+			
+			private var m_thumbFiles: Vector.<File>;
+			
+			private var m_thumbBmds: Dictionary;
+			
+			private var m_loader: MELoader;
+			
+			private var m_merger: BlockMerger;
+			
+			private var m_islandBmd: BitmapData;
+			
+			private var m_guideSprite: Sprite;
+			
+			private var m_guideTfs: Vector.<TextField>;
+			
+			private var m_refreshTimerID: int;
+			
+			private var m_crtMapInfo: MapInfo;
+			
+			private var m_scene2resource: Object = {};
+			
+			private var m_scene2item: Object = {};
+			
+			private var so: SharedObject;
+			
+			private var m_lastMapInfo: MapInfo;
+			
+			// 程序初始化
+			private function _init(): void
+			{	
+				m_files = new Vector.<File>();
+				
+				m_guideSprite = new Sprite();
+				m_guideTfs = new Vector.<TextField>();
+				
+				var guideText: String = "===========使用说明===========\n";
+				guideText += "1. 选择地编所在的目录(res/maps)\n";
+				guideText += "2. 勾选要处理的地编\n";
+				guideText += "3. 处理地编需要时间，请耐心等待\n";
+				guideText += "4. 处理后上传生成的mapData.bytes和unitData.bytes\n";
+				taLog.text = guideText;
+				
+				_reset();
+				
+				btnBrowserRead.addEventListener(MouseEvent.CLICK, _onClickBtnBrowserRead);
+				btnBrowserSave.addEventListener(MouseEvent.CLICK, _onClickBtnBrowserSave);
+				btnStart.addEventListener(MouseEvent.CLICK, _onClickBtnStart);
+				btnQuery.addEventListener(MouseEvent.CLICK, _onClickBtnQuery);
+				btnSelectAll.addEventListener(MouseEvent.CLICK, _onClickBtnSelectAll);
+				btnCancelSelect.addEventListener(MouseEvent.CLICK, _onClickBtnCancelSelect);
+				
+				NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, _onInvoke);	
+			}
+			
+			private function _onInvoke(event: InvokeEvent): void
+			{
+				LogHelper.setFunc(_traceLog, _updateStatus);
+				
+				so = SharedObject.getLocal('MapDataAdaptor', '/');
+				var readPath: String = so.data.readPath;
+				if(readPath)
+				{
+					tiPath.text = readPath;
+					_readDirection();
+				}
+				var savePath: String = so.data.savePath;
+				if(savePath)
+				{
+					tiSavePath.text = savePath;				
+				}
+			}
+			
+			private function _traceLog(logStr: String) : void
+			{
+				taLog.appendText(logStr);
+			}
+			
+			private function _updateStatus(logStr: String) : void
+			{
+				lbStatus.text = logStr;
+			}
+			
+			private function _onClickBtnBrowserRead(event: MouseEvent) : void
+			{
+				// 打开
+				var file: File = new File();
+				
+				file.browseForDirectory("请选择地编文件目录"); 
+				file.addEventListener(Event.SELECT, _dirSelectReadHandler);
+			}
+			
+			private function _onClickBtnBrowserSave(event: MouseEvent) : void
+			{
+				// 打开
+				var file: File = new File();
+				
+				file.browseForDirectory("请选择保存文件目录"); 
+				file.addEventListener(Event.SELECT, _dirSelectSaveHandler);
+			}
+			
+			private function _dirSelectReadHandler(event: Event):void
+			{
+				m_scene2resource = {};
+				var file: File = File(event.target);
+				file.removeEventListener(Event.SELECT, _dirSelectReadHandler);
+				
+				var readPath: String = file.nativePath;
+				tiPath.text = readPath;
+				
+				_readDirection();
+			}
+			
+			private function _sortByResourceID(a: CbItemData, b: CbItemData) : int
+			{
+				if(a.resourceID != b.resourceID)
+				{
+					return a.resourceID - b.resourceID;
+				}
+				else
+				{
+					return a.sceneID - b.sceneID;
+				}
+			}
+			
+			
+			private function _dirSelectSaveHandler(event: Event):void
+			{
+				var file: File = File(event.target);
+				file.removeEventListener(Event.SELECT, _dirSelectSaveHandler);
+				
+				var savePath: String = file.nativePath;
+				tiSavePath.text = savePath;
+				
+				so.data.savePath = savePath;
+			}
+			
+			
+			private function _reset() : void
+			{
+				m_files.length = 0;
+				btnBrowserRead.enabled = btnBrowserSave.enabled = true;
+				btnStart.enabled = true;
+				lsCb.visible = false;
+				
+				taLog.visible = true;
+			}
+			
+			private function _onClickBtnSelectAll(event: Event): void
+			{
+				for each(var itemData: CbItemData in m_fileCbDatas)
+				{
+					itemData.ck = true;
+				}
+			}
+			
+			private function _onClickBtnCancelSelect(event: Event): void
+			{
+				for each(var itemData: CbItemData in m_fileCbDatas)
+				{
+					itemData.ck = false;
+				}
+			}
+			
+			private function _onClickBtnStart(event: Event):void
+			{
+				// 检查是否设置了保存目录
+				var savePath: String = tiSavePath.text;
+				var testFile: File = new File();
+				testFile.nativePath = savePath;
+				if(!testFile.exists)
+				{
+					Alert.show("保存目录无效", "错误", Alert.YES);
+					return;
+				}
+				
+				if(null == m_fileCbDatas || m_fileCbDatas.length == 0)
+				{
+					Alert.show("未选择任何文件！", "错误", Alert.YES);
+					return;
+				}
+				
+				
+				// 读入地编
+				btnBrowserRead.enabled = btnBrowserSave.enabled = btnStart.enabled = false;
+				lsCb.visible = false;
+				taLog.visible = true;
+				
+				// 读入选中的地编文件
+				var tmpFile: File;
+				for each(var itemData: CbItemData in m_fileCbDatas)
+				{
+					if(itemData.ck)
+					{
+						tmpFile = new File();
+						tmpFile.url = itemData.url;
+						m_files.push(tmpFile);
+					}
+				}
+				
+				var mapRscFile: File, thumbFile: File, result: Array, prefixPath: String, mapID: int, sceneID: int, thumbUrl: String;
+				
+				var len: int = m_files.length;
+				if(len == 0)
+				{
+					Alert.show("未选择任何文件！", "错误", Alert.YES);
+					return;
+				}
+				
+				m_rscIDs = new Vector.<int>(len);
+				m_thumbUrls = new Vector.<String>(len);
+				thumbFile = new File();
+				
+				var logStr: String = "一共选择了" + len + "个文件：\n";
+				const reg: RegExp = /(.+)\/(\d+)\/(\d+)\/data\.rsc$/;
+				for(var i: int = 0; i < len; i++)
+				{
+					mapRscFile = m_files[i];
+					logStr += mapRscFile.nativePath + "\n";
+					
+					result = reg.exec(mapRscFile.url);
+					if(null != result)
+					{
+						// 去除路径信息
+						prefixPath = result[1];
+						mapID = int(result[2]);
+						sceneID = int(result[3]);
+						
+						m_rscIDs[i] = mapID;
+						
+						// 加载对应的缩略图
+						thumbUrl = prefixPath + "\/collection\/smap" + mapID + ".png";
+						// 测试是否存在
+						thumbFile.url = thumbUrl;
+						if(!thumbFile.exists)
+						{
+							// 尝试jpg格式
+							thumbUrl = prefixPath + "\/collection\/smap" + mapID + ".jpg";
+						}
+						m_thumbUrls[i] = thumbUrl;
+					}
+				}
+				logStr += "------------------------------";
+				LogHelper.appendLine(logStr);
+				
+				LogHelper.appendLine("正在加载文件...");
+				
+				if(null == m_loader)
+				{
+					m_loader = new MELoader();
+					m_loader.addEventListener(Event.COMPLETE, _onLoaderComplete);
+					m_loader.addEventListener(IOErrorEvent.IO_ERROR, _onLoaderIOError);
+				}
+				m_loader.loadFiles(m_files);
+			}
+			
+			private function _readDirection(): Boolean
+			{
+				var readPath: String = tiPath.text;
+				var file: File = new File();
+				file.nativePath = readPath;
+				
+				var dirArr: Array = file.getDirectoryListing();
+				var len: int = dirArr.length;
+				if(0 == len)
+				{
+					Alert.show("地编目录无效", "错误", Alert.YES);
+					return false;
+				}
+				
+				testFile = new File();
+				testFile.url = file.url + "/collection";
+				if(!testFile.exists)
+				{
+					Alert.show("地编目录无效", "错误", Alert.YES);
+					return false;
+				}
+				
+				so.data.readPath = readPath;
+				
+				taLog.visible = false;
+				lsCb.visible = true;
+				
+				var subFile: File, testFile: File, result: Array, resourceID: int, itemData: CbItemData, resourceList: Vector.<int>;
+				m_fileCbDatas = [];
+				const re: RegExp = /\/(\d+)$/;
+				for(var i: int = 0; i < len; i++)
+				{
+					subFile = dirArr[i];
+					result = re.exec(subFile.url);
+					if(null != result)
+					{
+						// 得到资源ID
+						resourceID = int(result[1]);
+						
+						var subDirArr: Array = subFile.getDirectoryListing();
+						var sceneID: int = 0;
+						for(var j: int = 0; j < subDirArr.length; j++)
+						{
+							var subChildFile: File = subDirArr[j];
+							if(null != subChildFile.extension)
+							{
+								continue;
+							}
+							var subResult: Array = re.exec(subChildFile.url);
+							if(null != subResult)
+							{
+								// 得到场景ID
+								sceneID = int(subResult[1]);
+								if(subChildFile.url.indexOf('/tile') >= 0)
+								{
+									continue;
+								}
+								resourceList = m_scene2resource[sceneID];
+								if(!resourceList) {
+									m_scene2resource[sceneID] = resourceList = new Vector.<int>();							
+								}
+								resourceList.push(resourceID);
+								
+								itemData = new CbItemData();
+								itemData.resourceID = resourceID;
+								itemData.sceneID = sceneID;
+								itemData.label = "资源" + resourceID + " - 场景" + sceneID;
+								itemData.url = subFile.url + "/" + sceneID + "/data.rsc";
+								itemData.path = subFile.nativePath + "\\" + sceneID + "\\data.rsc";
+								itemData.hasProcessed = CbItemData.STATUS_NONE;
+								itemData.ck = false;
+								m_fileCbDatas.push(itemData);
+								m_scene2item[sceneID] = itemData;
+							}
+						}
+					}
+				}
+				
+				m_fileCbDatas.sort(_sortByResourceID);
+				
+				lsCb.dataProvider = new ArrayCollection(m_fileCbDatas);
+				
+				// 检查是否有场景重复
+				var repeatStr: String = '';
+				var repeatCount: int = 0;
+				for(var sceneIDKey: String in m_scene2resource)
+				{
+					resourceList = m_scene2resource[sceneIDKey];
+					if(resourceList.length > 1)
+					{
+						repeatStr += '场景' + sceneIDKey + '重复存在于资源目录：' + resourceList.join(',') + '\n';
+						repeatCount++;
+					}
+				}
+				if('' != repeatStr)
+				{
+					Alert.show("【" + repeatCount + "】个场景重复出现在多个资源目录中，请检查:\n" + repeatStr, "错误", Alert.YES);
+					return false;
+				}
+				return true;
+			}
+			
+			private function _onLoaderComplete(event: Event) : void
+			{
+				m_loader.removeEventListener(Event.COMPLETE, _onLoaderComplete);
+				m_loader.removeEventListener(IOErrorEvent.IO_ERROR, _onLoaderIOError);
+				
+				// 加载完成
+				var logStr: String = "地编文件加载完成！";
+				LogHelper.appendLine(logStr);
+				
+				if(null == m_merger)
+				{
+					m_merger = new BlockMerger(this);
+				}
+				
+				m_rscDatas = new Vector.<ByteArray>();
+				var len: int = m_files.length;
+				for(var i: int = 0; i < len; i++)
+				{
+					m_rscDatas.push(m_loader.getData(m_files[i]) as ByteArray);
+				}
+				
+				_loadThumbs();
+			}
+			
+			private function _onLoaderIOError(event: IOErrorEvent) : void
+			{				
+				var logStr: String = "[ERROR]文件加载失败，该文件已忽略：" + event.text;
+				LogHelper.appendLine(logStr);
+			}
+			
+			private function _loadThumbs() : void
+			{
+				m_thumbFiles = new Vector.<File>();
+				
+				var mapRscFile: File, thumbFile: File, thumbPath: String;
+				var len: int = m_files.length;
+				for(var i: int = 0; i < len; i++)
+				{
+					mapRscFile = m_files[i];
+					thumbPath = m_thumbUrls[i];
+					if(null != thumbPath)
+					{
+						thumbFile = new File();
+						thumbFile.url = thumbPath;
+						m_thumbFiles.push(thumbFile);
+					}
+				}
+				
+				LogHelper.appendLine("正在加载缩略图...");
+				
+				m_loader.addEventListener(Event.COMPLETE, _onLoadThumbsComplete);
+				m_loader.addEventListener(IOErrorEvent.IO_ERROR, _onLoadThumbsIOError);
+				m_loader.loadFiles(m_thumbFiles);
+			}
+			
+			private function _onLoadThumbsComplete(event: Event) : void
+			{
+				m_loader.removeEventListener(Event.COMPLETE, _onLoadThumbsComplete);
+				m_loader.removeEventListener(IOErrorEvent.IO_ERROR, _onLoadThumbsIOError);
+				
+				// 加载完成
+				LogHelper.appendLine("缩略图加载完成！");				
+				_afterLoadThumbs();
+			}
+			
+			private function _onLoadThumbsIOError(event: IOErrorEvent) : void
+			{
+				var logStr: String = "[WARNING]缩略图加载失败，不影响合并：" + event.text;
+				LogHelper.appendLine(logStr);
+			}
+			
+			private function _afterLoadThumbs(): void {
+				m_thumbBmds = new Dictionary();
+				var len: int = m_thumbFiles.length;
+				var thumbFile: File;
+				for(var i: int = 0; i < len; i++)
+				{
+					thumbFile = m_thumbFiles[i];
+					m_thumbBmds[m_rscIDs[i]] = m_loader.getData(thumbFile) as BitmapData;
+				}
+				
+				LogHelper.appendLine("开始合并...");
+				m_merger.begin(m_files, m_rscDatas);
+			}
+			
+			public function beforeMerge(index: int, info: MapInfo) : void
+			{
+				btnQuery.enabled = false;
+				if(null != m_lastMapInfo)
+				{
+					m_lastMapInfo.dispose();
+				}
+				m_lastMapInfo = info;
+				
+				// 显示缩略图
+				var mapID: int = m_rscIDs[index];
+				
+				LogHelper.appendLine("-------------------------------\n");
+				LogHelper.appendLine("开始处理場景：" + info.sceneID + ".rsc\n");
+				var item: CbItemData = m_scene2item[info.sceneID];
+				item.hasProcessed = CbItemData.STATUS_PROCCESSING;
+				
+				var originBmd: BitmapData = m_thumbBmds[mapID];
+				if(null != originBmd)
+				{
+					var drawBmd: BitmapData = new BitmapData(originBmd.width, originBmd.height, true);
+					drawBmd.draw(originBmd);
+					imgSmap.source = drawBmd;
+					imgSmap.visible = true;
+				}
+				else
+				{
+					imgSmap.visible = false;
+				}				
+				
+				// 清除示例
+				imgGuide.source = null;
+				
+				// 画阻挡
+				var islandBmpWidth: Number = info.mapWidth / CScenePath.MIN_SCENE_BLOCK_SIZE;
+				var islandBmpHeight: Number = info.mapHeight / CScenePath.MIN_SCENE_BLOCK_SIZE;
+				m_islandBmd = new BitmapData(islandBmpWidth, islandBmpHeight, false, ISLAND_BMD_DEFAULT_COLOR);
+				imgIsland.source = m_islandBmd;
+				
+				_drawIslands(info, false);
+				
+				// 开定时器刷新
+				m_refreshTimerID = setInterval(_drawIslands, 1000, info, false);
+			}
+			
+			public function afterMerge(index: int, info: MapInfo) : void
+			{
+				LogHelper.appendLine("合并完成");
+				if(m_refreshTimerID > 0)
+				{
+					clearInterval(m_refreshTimerID);
+					m_refreshTimerID = 0;
+				}
+				_drawIslands(info, true);
+				
+				// 保存文件
+				_saveAsNewFile(index, info);
+			}
+			
+			public function finishAll() : void
+			{
+				LogHelper.appendLine("-------------------------------\n");
+				LogHelper.appendLine("全部优化完毕\n");
+			}
+			
+			// 保存数据到一个新文件
+			public function _saveAsNewFile(index: int, info: MapInfo) : void
+			{
+				var savePath: String = tiSavePath.text;
+				var readFile: File = m_files[index];
+				var resourceID: int = m_rscIDs[index];
+				
+				// 保存为sceneID.bytes
+				var url: String = savePath + '/' + info.sceneID + '.bytes';
+				LogHelper.appendLine("正在保存文件：" + url);
+				
+				var writeFile: File = new File(url);
+				var writeFs: FileStream = new FileStream(); 
+				writeFs.endian = Endian.LITTLE_ENDIAN;
+				writeFs.open(writeFile, FileMode.WRITE);
+				
+				// 写入resource id
+				writeFs.writeInt(info.sceneID);
+				
+				// 写入地图宽高度
+				writeFs.writeShort(info.mapWidth);
+				writeFs.writeShort(info.mapHeight);
+				
+				// 写入传送点信息
+				var len: int = null != info.gateInfos ? info.gateInfos.length : 0;
+				writeFs.writeShort(len);
+				if(null != info.gateInfos)
+				{
+					for each(var gateInfo: GateInfo in info.gateInfos)
+					{
+						writeFs.writeInt(gateInfo.gateID);
+						writeFs.writeUTF(gateInfo.gateName);
+						writeFs.writeByte(gateInfo.direction);
+						writeFs.writeShort(gateInfo.position.x);
+						writeFs.writeShort(gateInfo.position.y);
+						writeFs.writeInt(gateInfo.destSceneID);
+						writeFs.writeShort(gateInfo.destX);
+						writeFs.writeShort(gateInfo.destY);
+					}
+				}
+				
+				// 写入npc信息
+				len = null != info.npcInfos ? info.npcInfos.length : 0;
+				writeFs.writeShort(len);
+				if(null != info.npcInfos)
+				{
+					for each(var npcInfo: NPCInfo in info.npcInfos)
+					{
+						writeFs.writeInt(npcInfo.npcID);
+						writeFs.writeByte(npcInfo.direction);
+						writeFs.writeShort(npcInfo.x);
+						writeFs.writeShort(npcInfo.y);
+					}
+				}
+				
+				
+				// 写入格子信息
+				writeFs.writeShort(info.tileWidth);
+				writeFs.writeShort(info.tileHeight);
+				
+				var blocks: Vector.<Vector.<TSceneBlock>> = m_merger.getAstar().getAstar().sceneBlocks;
+				var islandArr: Vector.<int> = new Vector.<int>();
+				var lastIslandIdx: int = -1, curIslandIdx: int, sameCnt: int, dataPairNum: uint = 0, byte: int;
+				for(var y: int = 0; y < info.rowCount; y++)
+				{
+					var transparentArray: Vector.<int> = info.transparentArray ? info.transparentArray[y] : null;
+					var safetyArea: Vector.<int> = info.safetyArea ? info.safetyArea[y] : null;
+					var terrainData: Vector.<int> = info.terrainData ? info.terrainData[y] : null;
+					var blockLine: Vector.<TSceneBlock> = blocks[y];
+					for(var x: int = 0; x < info.tileCount; x++)
+					{
+						curIslandIdx = blockLine[x].islandIndex;
+						assert(curIslandIdx >= 0, "错误的岛类型：(" + y + ", " + x + ")");
+						
+						byte = 0;
+						byte |= ((transparentArray && 0 != transparentArray[x]) ? 1 : 0);
+						byte |= ((safetyArea && 0 != safetyArea[x]) ? 2 : 0);
+						byte |= ((terrainData && 0 != terrainData[x]) ? 4 : 0);
+						writeFs.writeByte(byte);
+						writeFs.writeByte(curIslandIdx);
+						
+						if(islandArr.indexOf(blocks[y][x].islandIndex) < 0)
+						{
+							islandArr.push(blocks[y][x].islandIndex);
+						}
+					}
+				}
+				
+				writeFs.close();
+				LogHelper.appendLine("写入岛：" + islandArr.toString());
+				LogHelper.appendLine("保存文件成功：" + url);
+				
+				
+				var item: CbItemData = m_scene2item[info.sceneID];
+				item.hasProcessed = CbItemData.STATUS_PROCESSED;
+				
+				btnQuery.enabled = true;
+			}
+			
+			private function _drawIslands(mapInfo: MapInfo, drawGuide: Boolean) : void
+			{
+				var pathArr: Vector.<Vector.<int>> = mapInfo.pathArray;
+				var m_iWidthBlocks: uint = pathArr[0].length;
+				var m_iHeightBlocks: uint = pathArr.length;
+				
+				var blocks: Vector.<Vector.<TSceneBlock>> = m_merger.getAstar().getAstar().sceneBlocks;
+				var useBlockData: Boolean;
+				if(blocks.length > 0)
+				{
+					useBlockData = true;
+				}
+				
+				var colorCnt: uint = m_colors.length;
+				var rect: Rectangle = new Rectangle();
+				var block: TSceneBlock, crtColor: uint, crtColorIdx: int = 1, colorMap: Object = {};
+				m_islandBmd.lock();
+				for (var y: int = 0; y < m_iHeightBlocks; y++)//逐行遍历
+				{
+					for(var x: int = 0; x < m_iWidthBlocks; x++)
+					{
+						if(useBlockData)
+						{
+							block = blocks[y][x];
+							if(block.islandIndex > 0)
+							{
+								// 岛块
+								crtColor = colorMap[block.islandIndex];
+								if(0 == crtColor)
+								{
+									if(crtColorIdx < colorCnt)
+									{
+										crtColor = m_colors[crtColorIdx];
+										crtColorIdx++;
+									}
+									else
+									{
+										crtColor = uint(m_colors[block.islandIndex % colorCnt] + 0xffffff) / 2;
+									}
+									colorMap[block.islandIndex] = crtColor;
+								}
+								m_islandBmd.setPixel(x, y, crtColor);
+							}
+							else if(block.islandIndex == 0)
+							{
+								// 阻挡点
+								m_islandBmd.setPixel(x, y, m_colors[0]);
+							}
+						}
+						else
+						{
+							if(0 == pathArr[y][x])
+							{
+								// 阻挡点
+								m_islandBmd.setPixel(x, y, m_colors[0]);
+							}
+						}
+					}
+				}
+				m_islandBmd.unlock();
+				
+				// 绘制说明图例
+				if(drawGuide)
+				{
+					m_guideSprite.graphics.clear();
+					while(m_guideSprite.numChildren)
+					{
+						m_guideSprite.removeChildAt(0);
+					}
+					m_guideSprite.graphics.lineStyle(1);
+					var rx: int, tfIdx: int, tf: TextField;
+					const rw: int = 40, rh: int = 20, r_tfSep: int = 5, tf_RSep: int = 10;
+					for(var strIdx: String in colorMap)
+					{
+						m_guideSprite.graphics.beginFill(colorMap[strIdx], imgIsland.alpha);
+						m_guideSprite.graphics.drawRect(rx, 0, rw, rh);
+						m_guideSprite.graphics.endFill();
+						
+						if(tfIdx < m_guideTfs.length)
+						{
+							tf = m_guideTfs[tfIdx];
+						}
+						else
+						{
+							tf = new TextField();
+							m_guideTfs.push(tf);
+						}
+						tf.text = "岛" + strIdx;
+						tf.width = tf.textWidth + 10;
+						tf.height = tf.textHeight + 4;
+						tf.x = rx + rw + r_tfSep;
+						tf.y = (rh - tf.height) / 2;
+						m_guideSprite.addChild(tf);
+						
+						rx = tf.x + tf.width + tf_RSep;
+						tfIdx++;
+					}
+					var guideBmd: BitmapData = new BitmapData(imgGuide.width, imgGuide.height, false);
+					guideBmd.draw(m_guideSprite);
+					imgGuide.source = guideBmd;
+				}
+			}
+			
+			private function _onClickBtnQuery(event: MouseEvent) : void 
+			{
+				var text: String = tiPosition.text;
+				var re: RegExp = /(\d+)[,|，|\S]\s*(\d+)/;
+				var result: Array = re.exec(text);
+				var output: String;
+				if(null != result)
+				{
+					var px: int = int(result[1]);
+					var py: int = int(result[2]);
+					if(null != m_lastMapInfo)
+					{
+						var blocks: Vector.<Vector.<TSceneBlock>> = m_merger.getAstar().getAstar().sceneBlocks;
+						if(null != blocks)
+						{
+							var y: int = py / CScenePath.MIN_SCENE_BLOCK_SIZE;
+							var x: int = px / CScenePath.MIN_SCENE_BLOCK_SIZE;
+							var block: TSceneBlock = blocks[y][x];
+							output = "iWalkable = " + block.iWalkable + ", islandIndex = " + block.islandIndex;
+						}
+					}
+				}
+				
+				if(null != output)
+				{
+					Alert.show(output, "查询结果");
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:Group left="20" right="510" top="10" height="52">
+		<s:Label id="lbFile" left="10" top="6" text="请选择需要处理的地编文件"/>
+		<s:TextInput id="tiPath" left="160" right="168" top="2"/>
+		<s:TextInput id="tiSavePath" left="160" right="168" bottom="2"/>
+		<s:Button id="btnBrowserRead" right="90" top="2" width="70" label="浏览"/>
+		<s:Button id="btnStart" right="10" label="开始" enabled="false" verticalCenter="0"/>
+		<s:Label id="lbSavePath" left="10" bottom="6" text="请选择保存目录"/>
+		<s:Button id="btnBrowserSave" right="90" bottom="2" label="浏览"/>
+	</s:Group>
+	<s:TextArea id="taLog" left="20" top="70" bottom="58" width="420"/>
+	<s:Image id="imgSmap" left="450" right="20" top="70" bottom="60"></s:Image>
+	<s:Image id="imgIsland" left="450" right="20" top="70" bottom="60" alpha=".7"
+			 backgroundColor="#0E0D1D" chromeColor="#0E0D1D" scaleMode="letterbox"
+			 source="icons/bg.png"></s:Image>
+	<s:Image id="imgGuide" left="450" right="20" bottom="20" height="30"/>
+	<s:List id="lsCb" left="20" top="70" bottom="58" width="420" itemRenderer="ui.CbItemRender"></s:List>
+	<s:Group right="20" top="10" width="482" height="52">
+		<s:Label id="lbPosition" left="10" text="请输入要查询的坐标，x和y以,分隔" verticalCenter="0"/>
+		<s:TextInput id="tiPosition" left="200" right="90" verticalCenter="0"/>
+		<s:Button id="btnQuery" right="10" label="查询" enabled="false" verticalCenter="0"/>
+	</s:Group>
+	<s:Label id="lbStatus" left="448" right="20" bottom="58" height="30" text=""
+			 textAlign="left" verticalAlign="middle"/>
+	<s:Button id="btnSelectAll" left="20" bottom="20" label="全选"/>
+	<s:Button id="btnCancelSelect" left="98" bottom="20" width="70" label="取消"/>
+</s:WindowedApplication>

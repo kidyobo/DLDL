@@ -1,0 +1,14 @@
+{
+  "group": "mySdkGroup",
+  "libs": [ ],
+  "frameworks": [
+     "ReplayKit.framework"
+  ],
+  "headerpaths": [ ],
+  "files": [
+    "sdk/QKGame.framework"
+  ],
+  "folders": [ "sdk/" ],
+  "excludes": [ "^.*.meta$", "^.*.mdown$", "^.*.pdf$" ],
+  "linker_flags": ["-licucore"]
+}

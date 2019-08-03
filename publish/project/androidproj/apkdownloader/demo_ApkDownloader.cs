@@ -1,0 +1,1 @@
+SystemSDK.JavaCaller("com.fy.apkdownloader.DownLoader", null, "getInstance", "Call", "checkUpdate", typeof(Boolean), new object[] { apkUrl });

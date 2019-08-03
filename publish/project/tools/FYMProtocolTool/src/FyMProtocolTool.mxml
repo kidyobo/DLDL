@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="_init()" width="550" height="406">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import generator.ProtocolStructureGenerator;
+			
+			import mx.controls.Alert;
+			
+			private var m_parse: ProtocolParse;
+			
+			//程序初始化的函数调用
+			private function _init(): void
+			{
+				m_parse = new ProtocolParse();
+				btnBroswer1.addEventListener(MouseEvent.CLICK, _onBtnClick);
+				btnBroswer2.addEventListener(MouseEvent.CLICK, _onBtnClick);
+				btnProcess.addEventListener(MouseEvent.CLICK, _onBtnClick);
+				
+				//下面是两种调试的方式，本机调试和命令行启动方式，两个代码只能打开一个
+				
+				//这是本机调试的代码
+				var sourcePath: String = "E:\\FYMClient\\trunk\\project\\tools\\Protocol\\xml\\";
+				var targetPath: String = "E:\\FYMClient\\trunk\\project\\tools\\Protocol\\ts\\";
+				txXmlPath.text = sourcePath;
+				txasPath.text = targetPath;
+				
+				//这是用命令行启动的方式
+				NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, _onInvoke);
+			}
+			
+			/**
+			 *  
+			 * 按钮相应
+			 */	
+			private function _onBtnClick(event: MouseEvent): void
+			{
+				var file: File = null;
+				switch (event.target.id)
+				{
+					case "btnProcess":
+						txLabel.text = "正在转换协议......"
+						setTimeout(m_parse.beginConvert, 1000, null, txXmlPath.text, txasPath.text, false, _onParseEnd);
+						break;
+					case "btnBroswer1":
+						file = new File();
+						file.browseForDirectory("请选择要打开的文件"); 
+						file.addEventListener(Event.SELECT, _fileSelectHandle1);
+						break;
+					case "btnBroswer2":
+						file = new File();
+						file.browseForDirectory("请选择要打开的文件");
+						file.addEventListener(Event.SELECT, _fileSelectHandle2);
+						break;
+					default:
+						break;
+					
+				}
+			}
+			
+			/**
+			 *  
+			 * 接受命令行参数
+			 */	
+			private function _onInvoke(event: InvokeEvent): void
+			{
+				var args: Array = event.arguments;
+//				参数1  转换完了是否要关闭程序  1表示关闭 0表示不关闭
+//				参数2  路径是绝对路径还是相对路径   0 表示绝对路径  1 表示相对路径，相对于程序所在位置
+//				参数3  xml的源路径
+//				参数4  as的目的路径
+				if (args.length != 5)
+				{
+					var str: String = "参数不对\n命令行接受5个参数\n";
+					str += "参数1：计算机名"
+					str += "参数2：是否自动关闭Flash：1/0\n";
+					str += "参数3：指示是否相对路径：1表示相对路径/0表示绝对路径\n";
+					str += "参数4：源路径\n";
+					str += "参数5：输出路径\n";
+					Alert.show(str);
+				}
+				else
+				{
+					var pcName: String = args[0];
+					var sourcePath: String = null;
+					var targetPath: String = null;
+					var isCloseApp: Boolean = args[1] == 1;
+					if (args[2] == 0)//绝对路径
+					{
+						sourcePath = args[3];
+						targetPath = args[4];
+						setTimeout(m_parse.beginConvert, 1000, pcName, sourcePath, targetPath);
+					}
+					else if (args[2] == 1)//相对路径
+					{
+						var curPath: String = event.currentDirectory.nativePath + File.separator;//当前路径
+						sourcePath = curPath + args[3] + File.separator;
+						targetPath = curPath + args[4] + File.separator;
+						
+						setTimeout(m_parse.beginConvert, 1000, pcName, sourcePath, targetPath, isCloseApp);
+					}
+					else
+					{
+						Alert.show("第一个参数指定错误，要么是0，要么是1");
+					}
+				}
+			}
+			
+			private function _fileSelectHandle1(event: Event):void
+			{
+				var file: File = File(event.target);
+				file.removeEventListener(Event.SELECT, _fileSelectHandle2);
+				var path: String = file.nativePath;
+				txXmlPath.text = path;
+				
+			}
+			
+			private function _fileSelectHandle2(event: Event):void
+			{
+				var file: File = File(event.target);
+				file.removeEventListener(Event.SELECT, _fileSelectHandle2);
+				var path: String = file.nativePath;
+				txasPath.text = path;
+			}
+			
+			private function _onParseEnd(): void
+			{
+				txLabel.text = "协议转换成功";
+			}
+			
+		]]>
+	</fx:Script>
+	<s:TextInput id="txXmlPath" x="62" y="4" width="410" fontFamily="微软雅黑" enabled="true"/>
+	<s:Label x="6" y="10" text="XML路径" fontFamily="微软雅黑"/>
+	<mx:HRule x="9" y="58" width="531"/>
+	<s:TextArea id="txLog" x="9" y="66" width="531" height="284" fontFamily="微软雅黑" text="帮助说明：&#xd;&#xd;转换的过程界面会卡死，请耐心等待&#xd;&#xd;界面上的功能暂未实现，目前只支持命令行啦。哈哈哈哈&#xd;&#xd;命令行接受两个参数&#xd;参数1  转换完了是否要关闭程序  1表示关闭 0表示不关闭&#xd;参数2  路径是绝对路径还是相对路径   0 表示绝对路径  1 表示相对路径，相对于程序所在位置&#xd;参数3  xml的源路径&#xd;参数4  as的目的路径&#xd;&#xd;&#xd;" color="#ED1F1F"/>
+	<s:Button id="btnProcess" x="470" y="358" label="开始转换" fontFamily="微软雅黑" enabled="true"/>
+	<s:Button id="btnBroswer1" x="476" y="4" label="浏览" fontFamily="微软雅黑" enabled="true"/>
+	<s:Label x="6" y="38" text="as路径" fontFamily="微软雅黑"/>
+	<s:TextInput id="txasPath" x="62" y="32" width="410" fontFamily="微软雅黑" enabled="true"/>
+	<s:Button id="btnBroswer2" x="476" y="32" label="浏览" fontFamily="微软雅黑" enabled="true"/>
+	<s:Label x="230" y="358" fontFamily="微软雅黑" width="232" height="22" id="txLabel" verticalAlign="middle" textAlign="right" color="#0F7CF6"/>
+</s:WindowedApplication>
